@@ -138,7 +138,7 @@ BAR_COLOR = "#7747FD"
 TEXT_COLOR = "#001858"
 
 root = Tk()
-root.title("Priority Scheduler (3-col) - Kelompok 2E")
+root.title("Priority Scheduler - Kelas A ")
 root.geometry("1300x760")
 root.configure(bg=APP_BG)
 
@@ -415,3 +415,4 @@ load_sample()
 
 # ---------------- Mainloop ----------------
 root.mainloop()
+
