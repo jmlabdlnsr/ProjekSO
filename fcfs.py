@@ -1,7 +1,7 @@
 """
 fcfs.py
 
-FCFS Scheduling GUI — tanpa priority field
+FCFS Scheduling GUI
 """
 
 from tkinter import *
@@ -90,7 +90,7 @@ right_frame.pack(side=LEFT, fill=BOTH, expand=True, padx=6, pady=6)
 # ---------------- Left: inputs + controls + results ----------------
 Label(left_frame, text="➤ FCFS Scheduler", font=("Segoe UI", 16, "bold"), bg=APP_BG, fg=TEXT_COLOR).pack(pady=8)
 
-# Input entries - TANPA PRIORITY
+# Input entries
 inp_frame = Frame(left_frame, bg=APP_BG)
 inp_frame.pack(pady=6)
 Label(inp_frame, text="Arrival", bg=APP_BG).grid(row=0, column=0, padx=4, pady=4)
@@ -122,7 +122,7 @@ scale_slider.pack(fill=X, padx=6)
 btn_save = Button(left_frame, text="Save Gantt PNG", bg="#ffc8dd", command=lambda: save_gantt_png())
 btn_save.pack(fill=X, padx=12, pady=6)
 
-# Results area - TANPA PRIORITY
+# Results area
 Label(left_frame, text="Results (per-process)", bg=APP_BG, fg=TEXT_COLOR, font=("Segoe UI",11,"bold")).pack(pady=6)
 res_cols = ("PID","AT","BT","ST","CT","TAT","WT")
 res_tree = ttk.Treeview(left_frame, columns=res_cols, show="headings", height=8)
@@ -134,7 +134,7 @@ res_tree.pack(fill=BOTH, expand=False, padx=8, pady=6)
 avg_label = Label(left_frame, text="Avg WT: -    Avg TAT: -", bg=APP_BG, font=("Segoe UI",11,"bold"), fg=TEXT_COLOR)
 avg_label.pack(pady=6)
 
-# ---------------- Middle: process table - TANPA PRIORITY ----------------
+# ---------------- Middle: process table ----------------
 Label(mid_frame, text="Processes", font=("Segoe UI",13,"bold"), bg=APP_BG, fg=TEXT_COLOR).pack(pady=6)
 cols = ("PID","Arrival","Burst")
 tree = ttk.Treeview(mid_frame, columns=cols, show="headings", height=20)
@@ -158,7 +158,7 @@ fig.patch.set_facecolor(APP_BG)
 canvas = FigureCanvasTkAgg(fig, master=right_frame)
 canvas.get_tk_widget().pack(fill=BOTH, expand=True, padx=6, pady=6)
 
-# ---------------- Data store - TANPA PRIORITY ----------------
+# ---------------- Data store ----------------
 process_list: List[Tuple[str,int,int]] = []  # (pid, at, bt)
 
 # ---------------- Helper functions ----------------
@@ -314,4 +314,5 @@ def save_gantt_png():
     messagebox.showinfo("Saved", f"Gantt PNG saved to:\n{p}")
 
 load_sample()
+
 root.mainloop()
