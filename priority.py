@@ -1,18 +1,3 @@
-"""
-priority_gui_3col.py
-
-Priority Scheduling GUI — single window with 3 columns:
-Left: inputs + controls + summary results
-Middle: process table (Treeview)
-Right: 3D Gantt chart (matplotlib Axes3D)
-
-Color for bars: #7747FD
-Lower number = higher priority (1 = highest)
-
-Run:
-    python priority_gui_3col.py
-"""
-
 from tkinter import *
 from tkinter import ttk, messagebox, filedialog
 import threading, time, os
@@ -43,7 +28,7 @@ class Process:
     waiting_time: Optional[int] = None
     turnaround_time: Optional[int] = None
 
-    def __post_init__(self):
+    def _post_init_(self):
         self.remaining = self.burst
         self.sort_index = (self.priority, self.arrival, self.pid)
 
@@ -270,7 +255,7 @@ def load_sample():
 
 def import_csv():
     global process_list
-    path = filedialog.askopenfilename(filetypes=[("CSV files","*.csv"),("All files","*.*")])
+    path = filedialog.askopenfilename(filetypes=[("CSV files",".csv"),("All files",".*")])
     if not path:
         return
     try:
@@ -310,50 +295,82 @@ def reset_all():
 
 # ---------------- Rendering 3D Gantt ----------------
 def render_3d_gantt(gantt_segments: List[Tuple[int,int,str]], procs_meta: List[Process], total_time: int):
+    """
+    Render the 3D Gantt in the FCFS-style from your example:
+    - nicer color set (one color per process),
+    - clearer axes limits and labels,
+    - consistent bar widths and slight transparency,
+    - uses ax.bar3d with edgecolor and alpha.
+    """
     ax.clear()
     ax.set_facecolor(APP_BG)
     fig.patch.set_facecolor(APP_BG)
-    # collect pid order
+
+    # color palette for processes (will cycle)
+    colors = [BAR_COLOR, "#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FECA57", "#B28DFF", "#FFA8A8"]
+
+    # build order of PIDs appearing in gantt (preserve appearance order)
     pids_order = []
     for seg in gantt_segments:
         if seg[2] not in pids_order:
             pids_order.append(seg[2])
+
+    # safety: if gantt empty, show nothing
     if not pids_order:
-        pids_order = [p.pid for p in procs_meta]
-    y_pos = {pid: idx for idx,pid in enumerate(pids_order)}
-    # draw bars as 3D bars: x=start, y=index, z=0, dx=dur, dy=0.6, dz=1 (height)
-    xs = []
-    ys = []
-    zs = []
-    dxs = []
-    dys = []
-    dzs = []
-    colors = []
-    for start,end,pid in gantt_segments:
-        dur = end - start
+        canvas.draw()
+        return
+
+    y_pos = {pid: idx for idx, pid in enumerate(pids_order)}
+
+    xs, ys, zs, dxs, dys, dzs, bar_colors = [], [], [], [], [], [], []
+
+    for i, (start, end, pid) in enumerate(gantt_segments):
+        duration = end - start
         xs.append(start)
         ys.append(y_pos[pid])
         zs.append(0)
-        dxs.append(dur)
-        dys.append(0.6)
+        dxs.append(duration)
+        dys.append(0.8)
         dzs.append(1)
-        colors.append(BAR_COLOR)
+        color_idx = list(y_pos.keys()).index(pid) % len(colors)
+        bar_colors.append(colors[color_idx])
+
     if xs:
-        ax.bar3d(xs, ys, zs, dxs, dys, dzs, color=colors, shade=True, edgecolor="#222222", linewidth=0.2)
-    # label processes on y axis
+        # use alpha and edge styling to match fcfs example
+        ax.bar3d(xs, ys, zs, dxs, dys, dzs,
+                 color=bar_colors,
+                 alpha=0.9,
+                 shade=True,
+                 edgecolor='black',
+                 linewidth=0.4)
+
+    # labels and ticks
     ax.set_yticks(list(y_pos.values()))
     ax.set_yticklabels(list(y_pos.keys()))
-    ax.set_xlabel("Time")
+    ax.set_xlabel("Time", labelpad=10)
+    ax.set_ylabel("Process", labelpad=10)
+    ax.set_zlabel("")  # hide z label to keep it clean
+
+    # compute time bounds
+    max_time = max([seg[1] for seg in gantt_segments]) if gantt_segments else total_time
+    ax.set_xlim(0, max(1, max_time))
+    ax.set_ylim(-0.5, len(pids_order) - 0.5)
     ax.set_zlim(0, 1.5)
-    ax.set_zlabel("")  # hide z label
-    ax.set_title("3D Gantt (Priority Scheduling)", color=TEXT_COLOR)
-    ax.view_init(elev=20, azim=-60)  # pleasant angle
-    # set x ticks
-    if gantt_segments:
-        max_t = max(seg[1] for seg in gantt_segments)
-    else:
-        max_t = total_time
-    ax.set_xticks(range(0, max(1, max_t+1), max(1, max(1, max_t//10))))
+
+    # view & title
+    ax.view_init(elev=20, azim=-60)
+    ax.set_title("3D Gantt (Priority Scheduling)", pad=20, color=TEXT_COLOR)
+
+    # grid for readability
+    ax.grid(True, alpha=0.25)
+
+    # set reasonable x-ticks (up to 10 ticks)
+    try:
+        step = max(1, max_time // 10)
+    except Exception:
+        step = 1
+    ax.set_xticks(range(0, max(1, max_time + 1), step))
+
     canvas.draw()
 
 # ---------------- Run simulation and update UI ----------------
@@ -415,4 +432,3 @@ load_sample()
 
 # ---------------- Mainloop ----------------
 root.mainloop()
-
